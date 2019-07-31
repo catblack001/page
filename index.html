@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>扫码支付</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        a {
+            text-decoration: none;
+        }
+        body,
+        html {
+            font-size: 16px;
+            background: #fff;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        ul,
+        li {
+            list-style-type: none;
+        }
+
+        .loader {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            right: 0;
+            left: 0;
+            margin: auto;
+            top: 0;
+            bottom: 0;
+            z-index: 3
+        }
+
+        .loader .triangle {
+            stroke-dasharray: 50 30;
+            -webkit-animation: dash 2.5s cubic-bezier(0.35, 0.04, 0.63, 0.95) infinite;
+            -moz-animation: dash 2.5s cubic-bezier(0.35, 0.04, 0.63, 0.95) infinite;
+            -ms-animation: dash 2.5s cubic-bezier(0.35, 0.04, 0.63, 0.95) infinite;
+            -o-animation: dash 2.5s cubic-bezier(0.35, 0.04, 0.63, 0.95) infinite;
+            animation: dash 2.5s cubic-bezier(0.35, 0.04, 0.63, 0.95) infinite
+        }
+
+        @-webkit-keyframes dash {
+            to {
+                stroke-dashoffset: 500
+            }
+        }
+
+        @-moz-keyframes dash {
+            to {
+                stroke-dashoffset: 500
+            }
+        }
+
+        @-ms-keyframes dash {
+            to {
+                stroke-dashoffset: 500
+            }
+        }
+
+        @-o-keyframes dash {
+            to {
+                stroke-dashoffset: 500
+            }
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 500
+            }
+        }
+
+        .pay-status {
+            width: 90%;
+            margin: 0 auto;
+            display: flex;
+            height: 1rem;
+            justify-content: space-between;
+            display: none;
+        }
+
+        .pay-status h1 {
+            font-weight: bold;
+            font-size: 0.48rem;
+            color: #f10d38;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .pay-status ul {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .pay-status ul li {
+            color: #f10d38;
+            font-size: 0.3rem;
+        }
+
+        .pay-status ul li:nth-child(1) {
+            color: #333;
+        }
+
+        .pay-amount {
+            width: 90%;
+            margin: 0 auto;
+            margin-top: 0.24rem;
+        }
+
+        .pay-amount .p-tips {
+            width: 100%;
+            height: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f10d38;
+            color: #fff;
+            position: relative;
+        }
+
+        .pay-amount .p-tips::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            left: 50%;
+            bottom: -50%;
+            border-width: 0.2rem;
+            border-style: solid;
+            border-color: #f10d38 transparent transparent transparent;
+        }
+
+        .pay-amount .p-amount span {
+            margin: 0 0.1rem;
+        }
+
+        .pay-amount .p-amount {
+            width: 100%;
+            height: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 0.24rem;
+            font-size: 0.48rem;
+        }
+
+        .pay-amount .p-orderid {
+            width: 100%;
+            height: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.32rem;
+        }
+
+        .qrcode-wrap {
+            width: 100%;
+            height: 4.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        #invalid {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 0.32rem;
+            color: #666;
+        }
+
+        .pay-icon {
+            width: 100%;
+            height: 1.2rem;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+
+        .pay-icon div {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pay-icon div img {
+            width: 2.6rem;
+            height: 0.76rem;
+        }
+
+        .tips-dialog {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            background: rgba(0, 0, 0, 0.4);
+            left: 0;
+            top: 0;
+            z-index: 9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+
+        .tips-dialog .wrap {
+            width: 80%;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 0.32rem;
+            padding: 0.4rem 0;
+        }
+
+        .tips-dialog .wrap .content p {
+            text-align: center;
+            font-size: 0.30rem;
+            color: #333;
+        }
+
+        .tips-dialog .wrap .content p span {
+            color: #f10d38;
+            margin: 0 0.1rem;
+            font-size: 0.4rem;
+        }
+
+        .tips-dialog .wrap .btn {
+            margin: 0 auto;
+            width: 2.4rem;
+            height: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            border: 1px solid #f10d38;
+            background: #fff;
+            color: #f10d38;
+            border-radius: 0.32rem;
+            margin-top: 0.48rem;
+        }
+
+        .user-tips {
+            width: 90%;
+            margin: 0 auto;
+            margin-top: 0.24rem;
+        }
+
+        .icon-list,
+        .icon-desc {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .icon-list {
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        .icon-list li {
+            height: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .icon-desc {
+            margin-top: 0.12rem;
+            font-size: 0.24rem;
+        }
+
+        .icon-desc li {
+            width: 25%;
+            height: 1rem;
+            text-align: center;
+            color: #999;
+        }
+
+        canvas {
+            width: 4rem !important;
+            height: 4rem !important;
+        }
+
+        .scan-btn {
+            width: 90%;
+            margin: 0 auto;
+            background: #407aff;
+            display: flex;
+            height: 1rem;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: .28rem;
+            border-radius: 0.32rem;
+            margin: 0.48rem;
+        }
+    </style>
+    <style>
+        @font-face {
+            font-family: "iconfont";
+            src: url('iconfont.eot?t=1564050446907');
+            /* IE9 */
+            src: url('iconfont.eot?t=1564050446907#iefix') format('embedded-opentype'),
+                /* IE6-IE8 */
+                url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAWwAAsAAAAACpwAAAVhAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCDSAqIDIZRATYCJAMYCw4ABCAFhG0HWhsJCcgekqRjgR8oB8ABIYBcPPy33//2mZk7XyVJEk1//a6ePH0s0SxpaJAIjcii46XSSN5opDeEp91VW5NqpIsJSAf6RbR5Afs/l+kBqbPjPD9AUgiF/F/OFchNSUDjNuHmJtz+55jp0qJA8gPNJbIs0qppbzQeJdCAIhLzCvhsJ46nottSTPzDjxPoNMEQ3PQ+PIGGwpYFYu5nSRUaBb3SQQ7tqtqwtIB4BcjaUwfhPABeRn8ff4F5iAJJk4E99fTelgGrP5BnVUTs/wuxAQIIlrNCXEXGIqAQTxrtj5UT6WIk72zqXbEPdGuXlKXeQXum+sz/WdX//xTEtjt0O//yKELWSEQFkHdz2MNQww/E0yq6ggatgEIVWhkKf/CHKqqQJ4G64JABIHYAxBtg4ybdM2tUSYwp0lh0Oo0qQ6WKIYiEr0ICOjbGH5VGjl9XJS0IvNCuwu4IsvOqMnnuWgEyPIyNSKE7riiRpi9bIp3sp1H0FK5BXhRG0jrX8teh9K412OoaxvbLiqSZK1bMXddUyLNXc5krDgDCWerZSZl/qIyx8iCEPM71KTzuTx9pXRR6r3SXBQFvxwFsf+dB/FBFl5RQyL1+nY0Jgtjn7yfQEZ1JiOPcFfPyVpCwfd3cOkuR16evQMDp2qXD4X7jyaPb83gTrzO5OmZ4XHJ8Rm/NGXQHbjB2yGCv8HoezhM+415/whY85eDSdO4fd/113+3HT+5dKz8CpF9PuhIZZ/bYnMwhXGuHwG9umwINohDxfPwxFAWQdEL2Ys0fruHLyCjwpbmjK1ePS3EYy6uxNSiTPTyxpkvm1cfm/vMS5/ubF4KDWgbU4OCnZuS85HmkudCCYkCxCDNpwdrsWEti3prYQtW3oLbMBwV3GcgHBcU/F5kaShrMYJGFkgWw+Pe//sE/pgzz3/doS5V36/XqD6crbVrxlkSb4e/vuaWUPjlX2S5NWWRv92LLb+K6L0rKaR/LVT09SwTPiqYexMH3T5wA+9z3eewDbh/ANIP5UCZhQ2WZ0kTYPEwodF21vpRj86Z22CldhnPqhIyhLisey1ODrbld89gJH8ntxG2a7MKHdv3PD2MNuUoRHMFgAkwcaShSZF6msYelgz47RsdfP6nJqqPi7rJmsxRUvokb+Hdu/WJo3gnTXNtJgX1PT4fbncrVLiddGdeJBXZzQ1X1hh8iq6qSb2i/HQPCIu+Hp5DoQW+1L1curnKCNzcP7IRQU9JNlExBFI0/trTw9nxhcU/TBxeehfqs+yH1Q+6ikUhAxK/aJY+VROU8Le8YPOoPFm6yALaXWPuEd/Z9qGDuG528yuJocMSvjs2vZ5apngOlAK0HeZ6oBgD5HeFXRH1PeOH8Suh8hYd5W2Z4K4Hp+LUd/arrviWsYFBaCysgvwDgPVQYLHhhBQPLiiGyDbVopT3+IGd1fYf9CZ1OFa+pe9C9pZQjg+X+COVIBkmbccjaTSILdhEaXZaharcCnRb4rO4ypFhZFCpgXguD0G8TJL2+QNbvArJg70Jj1Fuo+oMInc5CYssu05GFeBSTGpOByVWYlcK+cE1xK449Ipm4apgXRbQzCiPLg2bGpuXIDvkULjGjpFyOl5YKTC9mD73ZaeS6jIXFbJMeD2eWxp15E5P0picNpxR40LIhRFQxYkDJCiiLjvlEUDvWqrz/CJESLlXYUVJnP0NCEatzZMaY6QDkjtwfVPIoySVS0rhS8gsoXYxmHuRNVuI6QYYKmwfZiC42LHOCv2OeCVVKHyof3l7pneU26GTvVIMAiZAEyZACRUD7gyQuLL9rvTJL9aVOtYo0K03yG9WZlki0JmR2IOYEAAAAAA==') format('woff2'),
+                url('iconfont.woff?t=1564050446907') format('woff'),
+                url('iconfont.ttf?t=1564050446907') format('truetype'),
+                /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */
+                url('iconfont.svg?t=1564050446907#iconfont') format('svg');
+            /* iOS 4.1- */
+        }
+
+        .iconfont {
+            font-family: "iconfont" !important;
+            font-size: 0.5rem;
+            color: #4067af;
+            font-style: normal;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .icon-saoyisao:before {
+            content: "\e60c";
+        }
+
+        .icon-xiangce:before {
+            content: "\e679";
+        }
+
+        .icon-weixin:before {
+            content: "\e620";
+        }
+
+        .icon-zhifubao:before {
+            content: "\e60a";
+        }
+
+        .icon-jiantou:before {
+            content: "\e64a";
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tips-dialog">
+        <div class="wrap">
+            <div class="content">
+                <p>此码仅单次使用，重复付款无效</p>
+                <p>请按<span id="tipsAmont"></span>付款，否则无效</p>
+            </div>
+            <div class="btn" style="border: 1px solid #f10d38;">我知道了</div>
+        </div>
+    </div>
+    <div class="main">
+        <div class="wrap">
+            <div class="pay-icon">
+                <div class="ali-pay">
+                    <img class="icon-ali"
+                        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAkCAYAAAB/up84AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+tpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxNyAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDE3LTEwLTIzVDEwOjEwOjU4KzA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAxNy0xMC0yM1QxMToxODo1OSswODowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAxNy0xMC0yM1QxMToxODo1OSswODowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RTk4NjNGM0JCN0EwMTFFNzk5MUFEMDRBQkZFREI3MzAiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RTk4NjNGM0NCN0EwMTFFNzk5MUFEMDRBQkZFREI3MzAiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RS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"
+                        alt="支付宝支付">
+                    <img class="icon-wechat"
+                        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIgAAAAkCAYAAABSZHLHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+tpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxNyAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDE3LTEwLTIzVDEwOjEwOjU4KzA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAxNy0xMC0yM1QxMToxODo1OSswODowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAxNy0xMC0yM1QxMToxODo1OSswODowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RTk0QjdGNEZCN0EwMTFFNzg3QjNEMTc1QUMyMTU5RjQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RTk0QjdGNTBCN0EwMTFFNzg3QjNEMTc1QUMyMTU5RjQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RS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"
+                        alt="微信支付">
+                </div>
+            </div>
+            <div style="background: #f5f6f7; width:100%;">
+                <div class="pay-status">
+                    <h1>待付款</h1>
+                    <ul>
+                        <li>支付倒计时：</li>
+                        <li id="min">--</li>
+                        <li>分</li>
+                        <li id="second">--</li>
+                        <li>秒</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pay-amount">
+                <p class="p-tips">切勿重复支付，重复支付无法到账</p>
+                <p class="p-amount">请付<span id="amt"></span>元</p>
+                <p class="p-orderid">订单号：<span id="tid"></span></p>
+            </div>
+
+            <div class="qrcode-wrap" style="position: relative;">
+                <article id="qrcode"></article>
+                <div id="loading" class="loader">
+                    <svg width="100" height="100">
+                        <polygon class="triangle" fill="none" stroke="#7eccd8" stroke-width="4"
+                            points="50,1 99,99 1,99" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="user-tips">
+                <ul class="icon-list">
+                    <li style="margin-left: 0.2rem;" class="iconfont icon-xiangce"></li>
+                    <li style="color: #999;">-----></li>
+                    <li class="icon-wechat iconfont icon-weixin"></li>
+                    <li class="icon-ali iconfont icon-zhifubao"></li>
+                    <li style="color: #999;">-----></li>
+                    <li class="iconfont icon-saoyisao"></li>
+                </ul>
+                <ul class="icon-desc">
+                    <li>截图将二维码保存至本地相册</li>
+                    <li class="icon-wechat">打开微信选择扫一扫</li>
+                    <li class="icon-ali">打开支付宝选择扫一扫</li>
+                    <li>从本地相册选择截图识别二维码</li>
+                </ul>
+            </div>
+            <a class="icon-wechat" href="javascript:testApp('weixin://')" target="_blank">
+                <p class="scan-btn">截图当前页后，点击这里或手动打开微信扫码</p>
+            </a>
+            <a class="icon-ali" href="javascript:testApp('alipay://')" target="_blank">
+                <p class="scan-btn">截图当前页后，点击这里或手动打开支付宝扫码</p>
+            </a>
+        </div>
+    </div>
+    <div id="invalid">
+
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+    <script src="https://unpkg.com/callapp-lib"></script>
+    <script>
+        !(function (window) {
+            var docWidth = 750;
+            var doc = window.document,
+                docEl = doc.documentElement,
+                resizeEvt = "orientationchange" in window ? "orientationchange" : "resize";
+            var recalc = (function refreshRem() {
+                var clientWidth = docEl.getBoundingClientRect().width;
+                docEl.style.fontSize =
+                    Math.max(Math.min(20 * (clientWidth / docWidth), 11.2), 8.55) * 5 + "px";
+                return refreshRem;
+            })();
+            docEl.setAttribute(
+                "data-dpr",
+                window.navigator.appVersion.match(/iphone/gi) ? window.devicePixelRatio : 1
+            );
+
+            if (/iP(hone|od|ad)/.test(window.navigator.userAgent)) {
+                /* 添加IOS标识 */
+                doc.documentElement.classList.add("ios");
+                /* IOS8以上给html添加hairline样式，以便特殊处理 */
+                if (
+                    parseInt(
+                        window.navigator.appVersion.match(/OS (\d+)_(\d+)_?(\d+)?/)[1],
+                        10
+                    ) >= 8
+                )
+                    doc.documentElement.classList.add("hairline");
+            }
+
+            if (!doc.addEventListener) return;
+            window.addEventListener(resizeEvt, recalc, false);
+            doc.addEventListener("DOMContentLoaded", recalc, false);
+        })(window);
+    </script>
+    <script>
+
+        function testApp(url) {
+            window.location.href = url
+            setTimeout(function(){
+                    window.location.href = ur;
+            },2000)
+        }
+
+        var timer = null
+        var params = JSON.parse(getRequest(location.search).json || {})
+        if (params.ajax) {
+            // 金额
+            $('#amt').text(params.amt)
+            // 商户订单 平台订单
+            $('#tid').text(params.tid)
+            // 展示支付宝 微信icon
+            $('.pay-icon').show()
+            if (params.qtype == 2) {
+                $('.icon-wechat').show()
+                $('.icon-ali').hide()
+            } else if (params.qtype == 1) {
+                $('.icon-wechat').hide()
+                $('.icon-ali').show()
+            }
+
+            // 二维码
+            // $('#invalid').hide()
+            // showQrcode('111')
+            // // 倒计时
+            // showCountDown(65)
+            getQrCodeUrl(params.ajax)
+        } else {
+
+        }
+
+
+        // 获取ajax地址
+        function getQrCodeUrl(url) {
+            // axios.get('https://mcht.lightsite.cn/mcht/teller/payinfo/152').then(function (res) {
+            axios.get(url).then(function (res) {
+                res = res.data
+                if (res.success) {
+                    $('#invalid').hide()
+                    // 二维码
+                    showQrcode(res.data.qrcode)
+                    // 倒计时
+                    showCountDown(params.ptimeout)
+                    $('.tips-dialog').css({
+                        display: 'flex'
+                    })
+                    $('#tipsAmont').text(params.amt)
+                    $('.tips-dialog .btn').click(function () {
+                        $('.tips-dialog').css({
+                            display: 'none'
+                        })
+                    })
+                } else {
+                    $('.wrap').hide()
+                    $('#invalid').show().html(res.data.msg)
+                }
+            })
+        }
+
+        // 二维码
+        function showQrcode(value) {
+            $('#loading').hide()
+            $('#qrcode').show()
+            $('#qrcode').qrcode({
+                width: 250,
+                height: 250,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                text: value
+            })
+        }
+
+        // 倒计时
+        function showCountDown(span) {
+            $('.pay-status').css({
+                display: 'flex'
+            })
+            if (timer) window.clearInterval(timer)
+            timer = setInterval(function () {
+                if (span >= 0) {
+                    var minute = Math.floor(span / 60)
+                    var second = Math.floor((span % (60)))
+                    minute = minute < 10 ? '0' + minute : minute
+                    second = second < 10 ? '0' + second : second
+                    $('#countdown').show()
+                    $('#min').html(minute)
+                    $('#second').html(second)
+                    span--
+                } else {
+                    $('.wrap').hide()
+                    $('#invalid').show().html('页面失效')
+                    window.clearInterval(timer)
+                }
+            }, 1000)
+        }
+
+
+        // 获取Url参数
+        function getRequest(url) {
+            var theRequest = new Object();
+            if (url.indexOf("?") != -1) {
+                var str = url.substr(1);
+                str = str.split("&");
+                for (var i = 0; i < str.length; i++) {
+                    theRequest[str[i].split("=")[0]] = decodeURIComponent(
+                        str[i].split("=")[1]
+                    );
+                }
+            }
+            return theRequest || {};
+        }
+    </script>
+</body>
+
+</html>
