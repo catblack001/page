@@ -89,7 +89,7 @@
 
         .pay-status h1 {
             font-weight: bold;
-            font-size: 0.48rem;
+            font-size: 0.40rem;
             color: #f10d38;
             display: flex;
             justify-content: flex-start;
@@ -104,7 +104,7 @@
 
         .pay-status ul li {
             color: #f10d38;
-            font-size: 0.3rem;
+            font-size: 0.28rem;
         }
 
         .pay-status ul li:nth-child(1) {
@@ -114,18 +114,19 @@
         .pay-amount {
             width: 90%;
             margin: 0 auto;
-            margin-top: 0.24rem;
         }
 
         .pay-amount .p-tips {
             width: 100%;
-            height: 0.8rem;
+            height: 0.6rem;
             display: flex;
             justify-content: center;
             align-items: center;
             background: #f10d38;
             color: #fff;
             position: relative;
+            font-size: 0.30rem;
+            margin-top: 0.24rem;
         }
 
         .pay-amount .p-tips::after {
@@ -156,11 +157,11 @@
 
         .pay-amount .p-orderid {
             width: 100%;
-            height: 0.8rem;
+            height: 0.6rem;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.32rem;
+            font-size: 0.30rem;
         }
 
         .qrcode-wrap {
@@ -260,7 +261,7 @@
         .user-tips {
             width: 90%;
             margin: 0 auto;
-            margin-top: 0.24rem;
+            /* margin-top: 0.24rem; */
         }
 
         .icon-list,
@@ -276,7 +277,7 @@
         }
 
         .icon-list li {
-            height: 1rem;
+            height: 0.5rem;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -284,14 +285,13 @@
 
         .icon-desc {
             margin-top: 0.12rem;
-            font-size: 0.24rem;
         }
 
         .icon-desc li {
             width: 25%;
-            height: 1rem;
             text-align: center;
             color: #999;
+            font-size: 0.24rem;
         }
 
         canvas {
@@ -310,7 +310,7 @@
             color: #fff;
             font-size: .28rem;
             border-radius: 0.32rem;
-            margin: 0.48rem;
+            margin-top: 0.48rem;
         }
     </style>
     <style>
@@ -507,11 +507,11 @@
             // 二维码
             // $('#invalid').hide()
             // showQrcode('111')
-            // // 倒计时
+            // // // 倒计时
             // showCountDown(65)
             getQrCodeUrl(params.ajax)
         } else {
-
+            $('#invalid').show().html('页面无效')
         }
 
 
