@@ -584,12 +584,17 @@
                 var str = url.substr(1);
                 str = str.split("&");
                 for (var i = 0; i < str.length; i++) {
-                    theRequest[str[i].split("=")[0]] = decodeURIComponent(
-                        str[i].split("=")[1]
-                    );
+                    var items =  str[i].split("=");
+                    var key = items[0];
+                    var val = items[1];
+
+                    if (key == "json") {
+                        theRequest.json = decodeURIComponent(atob(val));
+                    } else {
+                        theRequest[key] = decodeURIComponent(val);
+                    }
                 }
             }
-            theRequest.json = atob(theRequest.json);
             console.log(theRequest);
             return theRequest || {};
         }
