@@ -490,8 +490,9 @@
         if (params.ajax) {
             // 金额
             $('#amt').text(params.amt)
-            // 商户订单 平台订单
+            // 平台订单
             $('#tid').text(params.tid)
+            // 商户订单号
             $('#morderid').text(params.morderid)
             // 展示支付宝 微信icon
             $('.pay-icon').show()
@@ -525,6 +526,8 @@
                     showQrcode(res.data.qrcode)
                     // 倒计时
                     showCountDown(params.ptimeout)
+                    // 查询支付结果
+                    // queryPay(params.wsurl);
                     $('.tips-dialog').css({
                         display: 'flex'
                     })
@@ -578,6 +581,25 @@
             }, 1000)
         }
 
+        // 以后加上！！！
+        function queryPay(wsurl) {
+            if (ws != null && ws.readyState == 1) { return }
+            if ("WebSocket" in window) {
+                ws = new WebSocket(wsurl);
+                ws.onopen = function () {};
+                ws.onmessage = function (event) {
+                    var msg = JSON.parse(event.data)
+                    // 收到消息，就是支付成功!!!!
+                    if (msg.type == "pushpay") {
+                        $('#invalid').show().html('支付成功')
+                    }
+                };
+                ws.onclose = function () { };
+                ws.onerror = function (event) { };
+            } else {
+                alert("WebSocket NOT supported by your Browser!");
+            }
+        };
 
         // 获取Url参数
         function getRequest(url) {
