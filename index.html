@@ -396,7 +396,8 @@
             <div class="pay-amount">
                 <p class="p-tips">切勿重复支付，重复支付无法到账</p>
                 <p class="p-amount">请付<span id="amt"></span>元</p>
-                <p class="p-orderid">订单号：<span id="tid"></span></p>
+                <p class="p-orderid">平台订单号：<span id="tid"></span></p>
+                <p class="p-orderid">商户订单号：<span id="morderid"></span></p>
             </div>
 
             <div class="qrcode-wrap" style="position: relative;">
@@ -491,6 +492,7 @@
             $('#amt').text(params.amt)
             // 商户订单 平台订单
             $('#tid').text(params.tid)
+            $('#morderid').text(params.morderid)
             // 展示支付宝 微信icon
             $('.pay-icon').show()
             if (params.qtype == 2) {
