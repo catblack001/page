@@ -589,6 +589,8 @@
                     );
                 }
             }
+            theRequest.json = atob(theRequest.json);
+            console.log(theRequest);
             return theRequest || {};
         }
     </script>
